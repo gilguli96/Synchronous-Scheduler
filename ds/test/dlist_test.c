@@ -504,19 +504,19 @@ void TestDListSplice(void)
     dlist_iter_ty to_iter;
 
     /* Test Data */
-    int data_dest[] = {1, 2, 6, 7};      /* We will insert between 2 and 6 */
-    int data_src[] = {3, 4, 5};          /* This will be injected */
+    int data_dest[] = {1, 2, 5, 6};      /* We will insert between 2 and 6 */
+    int data_src[] = {3, 4, 8};          /* 3 - 4 will be injected */
     int expected_result[] = {1, 2, 3, 4, 5, 6, 7};
     
     size_t i = 0;
 
-    /* Destination List: {1, 2, 6, 7} */
+    /* Destination List: {1, 2, 5, 6} */
     for (i = 0; i < sizeof(data_dest)/sizeof(int); ++i)
     {
         DListPushBack(dest_list, &data_dest[i]);
     }
 
-    /* Source List: {3, 4, 5} */
+    /* Source List: {3, 4, 8} */
     for (i = 0; i < sizeof(data_src)/sizeof(int); ++i)
     {
         DListPushBack(src_list, &data_src[i]);
@@ -526,26 +526,27 @@ void TestDListSplice(void)
     /* Find 'where' (the node containing 6) */
     where_iter = DListBeginIter(dest_list);  	/* points to 1  */
     where_iter = DListIterNext(where_iter); 	/* points to 2  */
-    where_iter = DListIterNext(where_iter); 	/* points to 6  */
+    where_iter = DListIterNext(where_iter); 	/* points to 5  */
     
     /* moving the whole source list */
     from_iter = DListBeginIter(src_list);
-    to_iter = DListEndIter(src_list);
+    to_iter = DListIterPrev(DListEndIter(src_list));
 
     /* Perform Splice */
     /* moves {3, 4, 5} to before {6} */
     DListSplice(from_iter, to_iter, where_iter);
-
-    /* 5. Verify Destination List contains {1, 2, 3, 4, 5, 6, 7} */
-    if (!VerifyListContent(dest_list, expected_result, 7))
+	PrintListOfInts(dest_list);
+	PrintListOfInts(src_list);
+    /* 5. Verify Destination List contains {1, 2, 3, 4, 5, 6} */
+    if (!VerifyListContent(dest_list, expected_result, 6))
     {
         printf("List 1 Content: FAILED\n");
     }
 
-    /* Verify Source List is Empty */
-    if (!DListIsEmpty(src_list))
+    /* Verify Source List size is 1  */
+    if (1 != DListCount(src_list))
     {
-        printf("List 2 Empty:   FAILED (Size is %lu)\n", DListCount(src_list));
+        printf("List 2 Count:   FAILED (Size is %lu)\n", DListCount(src_list));
     }
 
     /* Cleanup */
