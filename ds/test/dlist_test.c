@@ -535,8 +535,6 @@ void TestDListSplice(void)
     /* Perform Splice */
     /* moves {3, 4, 5} to before {6} */
     DListSplice(from_iter, to_iter, where_iter);
-	PrintListOfInts(dest_list);
-	PrintListOfInts(src_list);
     /* 5. Verify Destination List contains {1, 2, 3, 4, 5, 6} */
     if (!VerifyListContent(dest_list, expected_result, 6))
     {
