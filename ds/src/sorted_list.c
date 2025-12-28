@@ -1,23 +1,32 @@
+/*******************************************************************************
+
+	Reviewer :  Shir Tankel
+	Version : 2
+	Date : 28/12/25
+
+*******************************************************************************/
 #include <stdlib.h>				/*	malloc free		*/
 #include <assert.h>				/*  assert			*/
 
-#include "sorted_list.h"
+#include "sorted_list.h"		
 
 #define TRUE					1
 #define FALSE					0
 #define UNUSED(x) 				((x)=(x))
 
-#ifndef NDEBUG
-#define SORT_LIST_P(iter)		((iter).lst)
+#ifndef NDEBUG									/* in debug we have access to the the list from iter */
+#define ITER_GET_LIST(iter)		((iter).lst)
 #else
-#define	SORT_LIST_P(iter)		(NULL)
+#define	ITER_GET_LIST(iter)		(NULL)
 #endif
 
 #ifndef NDEBUG
-#define SET_ITER_TO_NULL		{0}
-#else
+#define SET_ITER_TO_NULL		{0}				/* in debug we need so set the whole struct to null */
+#else											/* in release we need so set ptr to null */
 #define	SET_ITER_TO_NULL		NULL
-#endif				
+#endif
+
+#define SET_D_ITER_TO_NULL		NULL				
 
 /*******************************************************************************/
 struct sorted_list
@@ -40,28 +49,28 @@ static sorted_list_iter_ty DIterToSIter(dlist_iter_ty dlist_iter, const sorted_l
 #endif
 }
 /*******************************************************************************/
-static dlist_iter_ty SIterToDIter(sorted_list_iter_ty slist_iter)
+static dlist_iter_ty SIterToDIter(sorted_list_iter_ty sorted_list_iter)
 {
 #ifndef NDEBUG
-	return slist_iter.d_iter;
+	return sorted_list_iter.d_iter;
 #else
-	return (dlist_iter_ty)slist_iter;
+	return (dlist_iter_ty)sorted_list_iter;
 #endif
 }
 /*******************************************************************************/
-static int IsValidIter(sorted_list_iter_ty slist_iter)
+static int IsValidIter(sorted_list_iter_ty sorted_list_iter)
 {
 #ifndef NDEBUG
-	return (slist_iter.d_iter != NULL) && (slist_iter.lst != NULL) ;
+	return (NULL != sorted_list_iter.d_iter) && ( NULL != sorted_list_iter.lst ) ;
 #else
-	return slist_iter != NULL ;;
+	return NULL != sorted_list_iter ;
 #endif
 }
 /*******************************************************************************/
 static int ItersOnSameList(sorted_list_iter_ty iter1, sorted_list_iter_ty iter2)
 {
 #ifndef NDEBUG
-	return SORT_LIST_P(iter1) ==  SORT_LIST_P(iter2);
+	return ITER_GET_LIST(iter1) ==  ITER_GET_LIST(iter2);
 #else
 	return TRUE ;
 #endif
@@ -96,6 +105,7 @@ sorted_list_ty* SortedListCreate(sorted_list_cmp_func_ty cmp, void* param)
 	if (NULL == new_sorted_list->dlist)
 	{
 		free(new_sorted_list);
+		new_sorted_list = NULL;
 		return NULL;
 	}
 	new_sorted_list->param = param;
@@ -106,11 +116,15 @@ sorted_list_ty* SortedListCreate(sorted_list_cmp_func_ty cmp, void* param)
 /*******************************************************************************/
 void SortedListDestroy(sorted_list_ty* lst)
 {
-		assert(NULL != lst);
+		if (NULL == lst)
+		{
+			return;
+		}
 
-		DListDestroy((lst->dlist));
+		DListDestroy(lst->dlist);
 		lst->dlist = NULL;
 		free(lst);
+		lst = NULL;
 }
 /*******************************************************************************/
 size_t SortedListCount(const sorted_list_ty* lst)
@@ -130,7 +144,7 @@ int SortedListIsEmpty(const sorted_list_ty* lst)
 void* SortedListIterGetData(sorted_list_iter_ty iter)
 {
 	assert(IsValidIter(iter));
-	assert(!SortedListIterIsEqual(iter, SortedListEndIter(SORT_LIST_P(iter))));
+	assert(!SortedListIterIsEqual(iter, SortedListEndIter(ITER_GET_LIST(iter))));
 
 	return DListIterGetData(SIterToDIter(iter));
 }
@@ -140,9 +154,9 @@ void SortedListIterSetData( sorted_list_ty* lst,
                             sorted_list_iter_ty iter,
                             void* new_data            )
 {
-	dlist_iter_ty d_iter = NULL;
+	dlist_iter_ty d_iter = SET_D_ITER_TO_NULL;
 	sorted_list_iter_ty where = SET_ITER_TO_NULL;
-	dlist_iter_ty d_where = NULL;
+	dlist_iter_ty d_where = SET_D_ITER_TO_NULL;
 
 	assert(IsValidIter(iter));
 	assert(!SortedListIterIsEqual(SortedListEndIter(lst), iter));
@@ -153,6 +167,7 @@ void SortedListIterSetData( sorted_list_ty* lst,
 
 	if (DListIterIsEqual(d_iter, d_where))
 	{
+		DListIterSetData(d_iter, new_data);
 		return;
 	}
 
@@ -176,18 +191,19 @@ sorted_list_iter_ty SortedListEndIter(const sorted_list_ty* lst)
 /*******************************************************************************/
 sorted_list_iter_ty SortedListIterNext(sorted_list_iter_ty iter)
 {
-	assert(!SortedListIterIsEqual(iter, SortedListEndIter(SORT_LIST_P(iter))));
+	assert(IsValidIter(iter));
+	assert(!SortedListIterIsEqual(iter, SortedListEndIter(ITER_GET_LIST(iter))));
 
-	return DIterToSIter(DListIterNext(SIterToDIter(iter)), SORT_LIST_P(iter));
+	return DIterToSIter(DListIterNext(SIterToDIter(iter)), ITER_GET_LIST(iter));
 }
 /*******************************************************************************/
 sorted_list_iter_ty SortedListIterPrev(sorted_list_iter_ty iter)
 {
 	assert(IsValidIter(iter));
-	assert(!SortedListIterIsEqual(iter, SortedListBeginIter(SORT_LIST_P(iter))));
+	assert(!SortedListIterIsEqual(iter, SortedListBeginIter(ITER_GET_LIST(iter))));
 
 	return DIterToSIter(DListIterPrev(SIterToDIter(iter)), 
-						SORT_LIST_P(iter));
+						ITER_GET_LIST(iter));
 }
 /*******************************************************************************/
 int SortedListIterIsEqual( sorted_list_iter_ty iter1, 
@@ -211,15 +227,15 @@ sorted_list_iter_ty SortedListInsert(sorted_list_ty* lst, void* new_data)
 
 	return DIterToSIter(DListInsertBefore(lst->dlist, 
 										SIterToDIter(iter_where),
-										new_data), SORT_LIST_P(iter_where));	
+										new_data), ITER_GET_LIST(iter_where));	
 }
 /*******************************************************************************/
 sorted_list_iter_ty SortedListRemove(sorted_list_iter_ty iter)
 {
 	assert(IsValidIter(iter));
-	assert(!SortedListIterIsEqual(iter ,SortedListEndIter(SORT_LIST_P(iter))));
+	assert(!SortedListIterIsEqual(iter ,SortedListEndIter(ITER_GET_LIST(iter))));
 
-	return DIterToSIter(DListRemove(SIterToDIter(iter)), SORT_LIST_P(iter));
+	return DIterToSIter(DListRemove(SIterToDIter(iter)), ITER_GET_LIST(iter));
 }
 /*******************************************************************************/
 sorted_list_iter_ty SortedListFind(sorted_list_ty* lst, void* data)
@@ -260,7 +276,7 @@ sorted_list_iter_ty SortedListFindIf( sorted_list_iter_ty from,
 	d_from = SIterToDIter(from);
 	d_to = SIterToDIter(to);
 	
-	return DIterToSIter(DListFind(d_from, d_to, (is_match_func_ty)is_match, param), SORT_LIST_P(from));
+	return DIterToSIter(DListFind(d_from, d_to, (is_match_func_ty)is_match, param), ITER_GET_LIST(from));
 }
 /******************************************************************************/
 int SortedListForEach( sorted_list_iter_ty from, sorted_list_iter_ty to, 
