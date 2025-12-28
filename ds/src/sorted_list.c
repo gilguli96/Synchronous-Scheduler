@@ -7,6 +7,7 @@
 *******************************************************************************/
 #include <stdlib.h>				/*	malloc free		*/
 #include <assert.h>				/*  assert			*/
+#include <stddef.h>				/*		*/
 
 #include "sorted_list.h"		
 
@@ -84,7 +85,7 @@ static sorted_list_iter_ty FindValidLoc(sorted_list_ty* sorted_list ,sorted_list
 
 	while( !SortedListIterIsEqual(cur_iter, end_iter) )
 	{
-		if (cmp_func(data, SortedListIterGetData(cur_iter), sorted_list->param) <= 0)
+		if (cmp_func(data, SortedListIterGetData(cur_iter), sorted_list->param) < 0)
 		{
 			return cur_iter;
 		}
@@ -266,8 +267,8 @@ sorted_list_iter_ty SortedListFindIf( sorted_list_iter_ty from,
 					                  sorted_list_is_match_func_ty is_match,
 					                  void* param     )
 {
-	dlist_iter_ty d_from = NULL;
-	dlist_iter_ty d_to = NULL;
+	dlist_iter_ty d_from = SET_D_ITER_TO_NULL;
+	dlist_iter_ty d_to = SET_D_ITER_TO_NULL;
 
 	assert(IsValidIter(from));
 	assert(IsValidIter(to));
@@ -276,14 +277,14 @@ sorted_list_iter_ty SortedListFindIf( sorted_list_iter_ty from,
 	d_from = SIterToDIter(from);
 	d_to = SIterToDIter(to);
 	
-	return DIterToSIter(DListFind(d_from, d_to, (is_match_func_ty)is_match, param), ITER_GET_LIST(from));
+	return DIterToSIter(DListFind(d_from, d_to, is_match, param), ITER_GET_LIST(from));
 }
 /******************************************************************************/
 int SortedListForEach( sorted_list_iter_ty from, sorted_list_iter_ty to, 
 					   sorted_list_action_func_ty action, void* param    )
 {
-	dlist_iter_ty d_from = NULL;
-	dlist_iter_ty d_to = NULL;
+	dlist_iter_ty d_from = SET_D_ITER_TO_NULL;
+	dlist_iter_ty d_to = SET_D_ITER_TO_NULL;
 
 	assert(IsValidIter(from));
 	assert(IsValidIter(to));
@@ -292,13 +293,11 @@ int SortedListForEach( sorted_list_iter_ty from, sorted_list_iter_ty to,
 	d_from = SIterToDIter(from);
 	d_to = SIterToDIter(to);
 	
-	return DListForEach(d_from, d_to, (action_func_ty)action, param);
+	return DListForEach(d_from, d_to, action, param);
 }
 /******************************************************************************/
 void SortedListMerge(sorted_list_ty* dest, sorted_list_ty* src)
 {
-	sorted_list_iter_ty node_dest = SET_ITER_TO_NULL;
-	sorted_list_iter_ty node_src = SET_ITER_TO_NULL;
 	sorted_list_iter_ty end_iter_dest = SET_ITER_TO_NULL;
 	sorted_list_iter_ty end_iter_src = SET_ITER_TO_NULL;
 
@@ -306,33 +305,32 @@ void SortedListMerge(sorted_list_ty* dest, sorted_list_ty* src)
 	sorted_list_iter_ty to = SET_ITER_TO_NULL;
 	sorted_list_iter_ty where = SET_ITER_TO_NULL;
 
-	node_dest = SortedListBeginIter(dest);
-	node_src = SortedListBeginIter(src);
+	assert(NULL != dest);
+	assert(NULL != src);
+	assert(dest != src);
+
+	where = SortedListBeginIter(dest);
+	from = SortedListBeginIter(src);
 	end_iter_dest = SortedListEndIter(dest);
 	end_iter_src = SortedListEndIter(src);
 	
-	while(!SortedListIterIsEqual(node_src, end_iter_src))
+	while(!SortedListIterIsEqual(from, end_iter_src))
 	{
-		from = node_src;
-		where = FindValidLoc(dest, node_dest, end_iter_dest, SortedListIterGetData(node_src));
+		where = FindValidLoc(dest, where, end_iter_dest, SortedListIterGetData(from));
 
+		/* if where is end_iter we just push the entire src list to the end of dest_list.
+		   if I dont have this if I will get seg fault because after this if I will try to access 'where' data */
 		if (SortedListIterIsEqual(where, end_iter_dest))
 		{
-			DListSplice(SIterToDIter(node_src), SIterToDIter(end_iter_src), SIterToDIter(end_iter_dest));
+			DListSplice(SIterToDIter(from), SIterToDIter(end_iter_src), SIterToDIter(end_iter_dest));
 			return;
 		}
 	
-		to = FindValidLoc(src, node_src, end_iter_src, SortedListIterGetData(where));
-
-		if (SortedListIterIsEqual(from, to))
-    	{
-			node_dest = SortedListIterNext(where);
-			continue;
-		}
+		to = FindValidLoc(src, from, end_iter_src, SortedListIterGetData(where));
 		
 		DListSplice(SIterToDIter(from), SIterToDIter(to), SIterToDIter(where));
-		node_src = to;
-		node_dest = where;
+
+		from = to;
 	}
 }
 

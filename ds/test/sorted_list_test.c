@@ -139,7 +139,6 @@ void TestSortedListInsertRemove(void)
 	int num3 = 9;
 	int num2 = 3;
 	int num1 = -3;
-	sorted_list_iter_ty ret_value;
 
     sorted_list_ty* list = SortedListCreate(CmpInts, NULL);
 	
@@ -178,15 +177,9 @@ void TestSortedListFind(void)
     person_ty p3 = {103, 35, "Charlie"};
 	person_ty p4 = {104, 40, "David"};
     person_ty* found_person = NULL;
-    
-    int target_id = 102;          /* Bob's ID */
-    int target_age = 35;          /* Charlie's Age */
-    char target_name[] = "Alice"; /* Alice's Name */
-    int missing_id = 999;         /* Non-existent ID */
 
     sorted_list_ty* list = SortedListCreate(CmpPersonsByAge, NULL);
     sorted_list_iter_ty end_iter = SortedListEndIter(list);
-    sorted_list_iter_ty found_iter= {0};
 
     SortedListInsert(list, &p3); /* Charlie */
     SortedListInsert(list, &p2); /* Bob */
@@ -204,6 +197,8 @@ void TestSortedListFind(void)
 		printf("TestSortedListFind 2 expected to get EndIter when Find not find\n\n");
 	}
 
+	SortedListDestroy(list);
+
 }
 /*****************************************************************************/
 void TestSortedListSet(void)
@@ -217,20 +212,19 @@ void TestSortedListSet(void)
 	person_ty p6 = {108, 25, "Alice"};	/* adjusted Alice with id 108 */
     person_ty* found_person = NULL;
     
-	int expected_data[] = {105, 106, 107, 108};
+	int expected_id[] = {105, 106, 107, 108};
 
     sorted_list_ty* list = SortedListCreate(CmpPersonsById, NULL);
     sorted_list_iter_ty end_iter = SortedListEndIter(list);
-    sorted_list_iter_ty found_iter= {0};
 	
     SortedListInsert(list, &p3); /* Charlie */
     SortedListInsert(list, &p2); /* Bob */
     SortedListInsert(list, &p1); /* Alice */
-	SortedListInsert(list, &p4); /* David */
+	SortedListInsert(list, &p4); 	/* David */
 
 
 	SortedListIterSetData(list, SortedListIterNext(SortedListBeginIter(list)), &p5); /* set bob to id 106 */
-	found_person = (person_ty*)SortedListIterGetData(SortedListIterPrev(SortedListIterPrev(SortedListEndIter(list))));
+	found_person = (person_ty*)SortedListIterGetData(SortedListIterPrev(SortedListIterPrev(end_iter)));
 
 
 	if (0 != strcmp(found_person->name, "Bob"))
@@ -239,7 +233,7 @@ void TestSortedListSet(void)
 	}
 
 	SortedListIterSetData(list, SortedListBeginIter(list), &p6); /* set Alice to id 108 */
-	VerifyListPersons(list, expected_data, 4);
+	VerifyListPersons(list, expected_id, 4);
 
 }
 /*****************************************************************************/
@@ -267,6 +261,8 @@ void TestSortedListMerge(void)
          
         SortedListDestroy(dest);
         SortedListDestroy(src);
+		dest = NULL ;
+		src = NULL ;
     }
 
     /* Case 2: Duplicates */
@@ -286,6 +282,8 @@ void TestSortedListMerge(void)
 		}
         SortedListDestroy(dest);
         SortedListDestroy(src);
+		dest = NULL ;
+		src = NULL ;
     }
 
     /* Case 3: Src Larger than Dest */
@@ -305,6 +303,8 @@ void TestSortedListMerge(void)
 		}
         SortedListDestroy(dest);
         SortedListDestroy(src);
+		dest = NULL ;
+		src = NULL ;
     }
 }
 /*****************************************************************************/
