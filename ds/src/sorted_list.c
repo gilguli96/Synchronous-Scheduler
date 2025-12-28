@@ -7,7 +7,7 @@
 *******************************************************************************/
 #include <stdlib.h>				/*	malloc free		*/
 #include <assert.h>				/*  assert			*/
-#include <stddef.h>				/*		*/
+#include <stddef.h>				/*	size_t	*/
 
 #include "sorted_list.h"		
 
