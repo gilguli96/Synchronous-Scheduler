@@ -104,6 +104,12 @@ void* PQRemove(pq_ty* q, pq_is_match_ty is_match, void* param)
 					 SortedListEndIter(q->sorted_list), 
 					 is_match,
 					 param);
+
+	if (SortedListIterIsEqual(sorted_iter, SortedListEndIter(q->sorted_list)))
+	{
+		return NULL;	
+	}
+
 	data_removed = SortedListIterGetData(sorted_iter);
 	SortedListRemove(sorted_iter);
 	return data_removed;

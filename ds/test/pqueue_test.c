@@ -186,9 +186,16 @@ void TestPQRemovePeek(void)
 {
 	int arr_test[] = {3,1,2};
 	int arr_expected[] = {1,2,3};
+	int num_missing = 4;
 	size_t i = 0;
 	size_t expected_size = 3;
 	pq_ty* pq = CreateListFromInts(arr_test, ARR_SIZE(arr_test));
+	
+	/* remove missing and expected null return */
+	if (PQRemove(pq, MatchInt, &num_missing) != NULL)
+	{
+		printf("PQ remove failed! Expected missing to return NULL !\n\n");
+	}
 	
 	/* remove 2 and expected to see 1 at the head */
 	PQRemove(pq, MatchInt, &arr_test[2]);
