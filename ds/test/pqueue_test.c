@@ -1,8 +1,18 @@
+/******************************************************************************
+
+		Priority Queue
+		Reviewer : Daria
+		Date: 6 / 1 / 25 
+
+******************************************************************************/
+
 #include <stdio.h>	/*	printf	*/
 #include <string.h> /* 	strcmp	*/
 #include "sorted_list.h"
 
 #include "pqueue.h"
+
+/******************************************************************************/
 
 #define SUCCESS 			0
 #define FAILURE				1
@@ -11,17 +21,20 @@
 #define ARR_SIZE(x)			(sizeof(x)/sizeof(x[0]))
 #define UNUSED(x) ((x) = (x))
 
+/******************************************************************************/
+
 static void PrintListOfInts(pq_ty* pq);
 static void PrintListOfPersons(pq_ty* pq);
 static int VerifyListPersons(const pq_ty* pq, int *expected_data, size_t size);
 static int VerifyListOfInts(const pq_ty* pq, int *expected_data, size_t size);
 static pq_ty* CreateListFromInts(int* arr, size_t size);
 
+/******************************************************************************/
 void TestPQCreateDestroy(void);
 void TestPQEnqueueDequeue(void);
 void TestPQRemovePeek(void);
 
-
+/******************************************************************************/
 typedef struct person
 {
     int id;
