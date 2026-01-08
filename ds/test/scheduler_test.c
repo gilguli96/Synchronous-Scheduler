@@ -1,7 +1,7 @@
 /******************************************************************************
 
-		Task
-		Reviewer : Shir
+		Scheduler
+		Reviewer : Daria
 		Date: 7 / 1 / 25 
 
 ******************************************************************************/
@@ -32,8 +32,6 @@ static void TestSchedulerRunAddStop(void);
 static void TestSchedulerRunClear(void);
 static void TestSchedulerRunStopClear(void);
 
-
-
 /* -------------------------------------------------------------------------
 						Helper Functions Declarations
    ------------------------------------------------------------------------- */
@@ -50,8 +48,8 @@ static void CleanOpParam(void* param);
    ------------------------------------------------------------------------- */
 int main()
 {
-	/*TestSchedulerCreateDestory();*/
-	/*TestSchedulerAddRemove();*/
+	TestSchedulerCreateDestory();
+	TestSchedulerAddRemove();
 	TestSchedulerRunAddStop();
 	TestSchedulerRunClear();
 	
@@ -106,9 +104,12 @@ static void TestSchedulerAddRemove(void)
 {
 	/* Case 1 task1 removes itself ! print  - remove self print -> end (no print) */
 	{
+		size_t intervals_1_amount = 3;
+		size_t interval_1_len = 2;
 		scheduler_ty* my_sch = SchedulerCreate();
-		op_param_ty* my_op_param = CreateOpParam(3, my_sch ,invalid_uid_g);
-		my_op_param->task_id = SchedulerAddTask(my_sch, 2, RemoveSelf,
+		op_param_ty* my_op_param = CreateOpParam(intervals_1_amount, my_sch ,invalid_uid_g);
+		my_op_param->task_id = SchedulerAddTask(my_sch, 
+										   interval_1_len, RemoveSelf,
 										   my_op_param, CleanOpParam,
 										   my_op_param);
 		SchedulerRun(my_sch);
