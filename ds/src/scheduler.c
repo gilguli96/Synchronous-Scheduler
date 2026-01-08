@@ -8,10 +8,10 @@
 
 
 
-#include <stdlib.h>	/* malloc free 	*/
-#include <time.h>	/* time() 		*/
-#include <assert.h> /* assert		*/
-#include <unistd.h> /* sleep */
+#include <stdlib.h>		/* malloc free 	*/
+#include <time.h>		/* time() 		*/
+#include <assert.h> 	/* assert		*/
+#include <unistd.h> 	/* sleep 		*/
 
 #include "scheduler.h"
 #include "pqueue.h"
