@@ -15,7 +15,7 @@
 
 static void GetIP(char *buffer, size_t buf_size);
 
-const uid_ty g_invalid_uid = {0};
+const uid_ty invalid_uid_g = {0};
 
 uid_ty UidCreate(void)
 {
@@ -25,7 +25,7 @@ uid_ty UidCreate(void)
     new_uid.time = time(NULL);
 	if (new_uid.time == (time_t)-1)
 	{
-		return g_invalid_uid;
+		return invalid_uid_g;
 	}
     new_uid.counter = ++count; 
     new_uid.pid = getpid();

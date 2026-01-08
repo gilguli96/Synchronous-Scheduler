@@ -59,13 +59,13 @@ size_t PQCount(const pq_ty* q)
 	return SortedListCount(q->sorted_list);
 }
 /******************************************************************************/
-bool_ty PQIsEmpty(const pq_ty* q)
+pq_bool_ty PQIsEmpty(const pq_ty* q)
 {
 	assert(NULL != q);
-	return (bool_ty)SortedListIsEmpty(q->sorted_list);
+	return (pq_bool_ty)SortedListIsEmpty(q->sorted_list);
 }
 /******************************************************************************/
-status_ty PQEnqueue(pq_ty* q, void* data)
+pq_status_ty PQEnqueue(pq_ty* q, void* data)
 {
 	sorted_list_iter_ty sorted_list_iter = {0};
 
@@ -74,10 +74,10 @@ status_ty PQEnqueue(pq_ty* q, void* data)
 	sorted_list_iter = SortedListInsert(q->sorted_list, data);
 	if (SortedListIterIsEqual(SortedListEndIter(q->sorted_list), sorted_list_iter))
 	{
-		return FAIL;
+		return PQ_FAIL;
 	}
 
-	return SUCCESS;	 
+	return PQ_SUCCESS;	 
 }
 /******************************************************************************/
 void* PQDequeue(pq_ty* q)

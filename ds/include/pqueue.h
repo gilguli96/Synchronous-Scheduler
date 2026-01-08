@@ -3,17 +3,17 @@
 
 typedef struct pq pq_ty;
 
-typedef enum status
+typedef enum pq_status
 {
-    SUCCESS = 0,
-    FAIL = 1
-} status_ty;
+    PQ_SUCCESS = 0,
+    PQ_FAIL = 1
+} pq_status_ty;
 
 typedef enum bool
 {
-    FALSE = 0,
-    TRUE = 1
-} bool_ty;
+    PQ_FALSE = 0,
+    PQ_TRUE = 1
+} pq_bool_ty;
 
 /****************************************************************************** 
 *   Function compares "data1" and "data2", any other parameter may be
@@ -69,34 +69,33 @@ size_t PQCount(const pq_ty* q);
 * 	Description:
 * 		Checks if the "q" is empty
 * 	Return value: 
-* 		TRUE if empty, FALSE otherwise
+* 		PQ_TRUE if empty, PQ_FALSE otherwise
 * 	Undefined behavior:
 * 		"q" is NULL
 * 	O(1)
 ******************************************************************************/
-bool_ty PQIsEmpty(const pq_ty* q);
+pq_bool_ty PQIsEmpty(const pq_ty* q);
 
 /****************************************************************************** 
 * 	Description:
 * 		Insert a new element to the queue
 * 	Return value:	
-* 		SUCCESS on success, FAIL on failure
+* 		PQ_SUCCESS on success, PQ_FAIL on failure
 * 	Undefined behaviour:
 * 		"q" is NULL
-*   O(n)
+*   O(1)
 ******************************************************************************/
-status_ty PQEnqueue(pq_ty* q, void* data);
+pq_status_ty PQEnqueue(pq_ty* q, void* data);
 
 /****************************************************************************** 
 *   Description:
 * 		Remove "q" head
 * 	Return value: 
 *		pointer to removed element
-*       NULL if "q" is empty
 * 	Undefined behavior: 
 * 		"q" is NULL
 *       "q" is empty
-*   O(n)
+*   O(1)
 ******************************************************************************/
 void* PQDequeue(pq_ty* q);
 
@@ -104,7 +103,7 @@ void* PQDequeue(pq_ty* q);
 *   Description:
 * 		Removes an element from "q"
 * 	Return value: 
-*		pointer to removed element
+*		pointer to removed element's data
 *       NULL if element was not found
 * 	Undefined behavior: 
 * 		"q" is NULL
@@ -120,8 +119,8 @@ void* PQRemove(pq_ty* q, pq_is_match_ty is_match, void* param);
 *		pointer to "q" head
 * 	Undefined behavior: 
 * 		"q" is NULL
-		"q" is empty
-*   O(n)
+*       "q" is empty
+*   O(1)
 ******************************************************************************/
 void* PQPeek(const pq_ty* q);
 
