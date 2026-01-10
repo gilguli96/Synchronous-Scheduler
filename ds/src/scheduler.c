@@ -205,6 +205,7 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 		if (TSK_NOT_REPEAT == first_op_status)
 		{
 			TaskDestroy(first_task);
+			first_task = NULL;
 			sch->func_to_exe = (sch->func_to_exe == REMOVE) ? NONE : sch->func_to_exe;
 			continue;
 		}
