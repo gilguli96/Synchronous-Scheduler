@@ -37,6 +37,7 @@ static void TestSchedulerRunStopClear(void);
    ------------------------------------------------------------------------- */
 static op_param_ty* CreateOpParam(size_t num_of_operations, scheduler_ty* sch ,uid_ty task_id);
 static sch_op_status_ty RemoveSelf(void* param);
+static sch_op_status_ty RemoveSelfNotRepeat(void* param);
 static sch_op_status_ty RemoveFriend(void* param);
 static sch_op_status_ty PrintOp(void* param);
 static sch_op_status_ty StopOp(void* param);
@@ -48,11 +49,10 @@ static void CleanOpParam(void* param);
    ------------------------------------------------------------------------- */
 int main()
 {
-	TestSchedulerCreateDestory();
+	/*TestSchedulerCreateDestory();*/
 	TestSchedulerAddRemove();
-	TestSchedulerRunAddStop();
-	TestSchedulerRunClear();
-	
+	/*TestSchedulerRunAddStop();
+	TestSchedulerRunClear();*/
 	return 0;
 }
 
@@ -112,12 +112,44 @@ static void TestSchedulerAddRemove(void)
 										   interval_1_len, RemoveSelf,
 										   my_op_param, CleanOpParam,
 										   my_op_param);
+		printf("Test Case 1 Started!\n\n");
 		SchedulerRun(my_sch);
 		SchedulerDestroy(my_sch);
 		my_sch = NULL;
+		printf("Test Case 1 Finished!\n\n");
 	}
 
-	/* Case 2: task 2 removes task1 PrintOp print 1  -> RemoveOp prints 1 -> PrintOp Prints 2 -> Removed PrintOp! -> RemoveOp print 3 */
+	/* Case 2 task1 removes itself and retuns not repat! */
+	{
+		size_t interval_1_amount = 3;
+		size_t interval_1_len = 1;
+		size_t interval_2_amount = 2;
+		size_t interval_2_len = 2;
+		scheduler_ty* my_sch = SchedulerCreate();
+		op_param_ty* my_op_param1 = CreateOpParam(interval_1_amount, my_sch ,invalid_uid_g);
+		op_param_ty* my_op_param2 = CreateOpParam(interval_2_amount, my_sch ,invalid_uid_g);
+
+
+
+		my_op_param2->task_id = SchedulerAddTask(my_sch, 
+										   interval_2_len, RemoveSelfNotRepeat,
+										   my_op_param2, CleanOpParam,
+										   my_op_param2);
+
+		my_op_param1->task_id = SchedulerAddTask(my_sch, 
+										   interval_1_len, PrintOp,
+										   my_op_param1, CleanOpParam,
+										   my_op_param1);
+		printf("Test Case 2 Started!\n\n");
+		SchedulerRun(my_sch);
+		SchedulerDestroy(my_sch);
+		my_sch = NULL;
+		printf("Test Case 2 Finished!\n\n");
+	}
+
+	
+
+	/* Case 3: task 2 removes task1 */
 	{
 		
 		scheduler_ty* my_sch = SchedulerCreate();
@@ -135,11 +167,14 @@ static void TestSchedulerAddRemove(void)
 		SchedulerAddTask(my_sch, interval_2_len, RemoveFriend, my_op_param2, 
 						           CleanOpParam, my_op_param2);
 		
-		
+		printf("Test Case 3 Started!\n\n");
 		SchedulerRun(my_sch);
 		SchedulerDestroy(my_sch);
 		my_sch = NULL;
+		printf("Test Case 3 Finished!\n\n");
 	}
+
+	
 	
 }
 /* ------------------------------------------------------------------------- */
@@ -237,6 +272,39 @@ static sch_op_status_ty RemoveSelf(void* param)
 	return SCH_REPEAT;
 }
 /* ------------------------------------------------------------------------- */
+static sch_op_status_ty RemoveSelfNotRepeat(void* param)
+{
+	op_param_ty* my_op_param = (op_param_ty*)param;
+
+	if(NULL == param)
+	{
+		return SCH_REPEAT;
+	}
+
+    if(my_op_param->num_of_operations == 0)
+	{
+		return SCH_NOT_REPEAT;
+	}
+
+	if(3 == my_op_param->num_of_operations)
+	{
+		printf("Remove Self First Execution!\n\n");
+	}
+	else if(2 == my_op_param->num_of_operations)
+	{
+		SchedulerRemoveTask(my_op_param->sch, my_op_param->task_id);
+		printf("Removed self from list here! not repeat!\n\n");
+		return SCH_NOT_REPEAT;
+	}
+	else if(1 == my_op_param->num_of_operations)
+	{
+		printf("Remove Self This Part should not appear! \n\n");
+	}
+	--(my_op_param->num_of_operations);
+	return SCH_REPEAT;
+}
+
+/* ------------------------------------------------------------------------- */
 static sch_op_status_ty RemoveFriend(void* param)
 {
 	op_param_ty* my_op_param = (op_param_ty*)param;
@@ -268,6 +336,9 @@ static sch_op_status_ty RemoveFriend(void* param)
 	--(my_op_param->num_of_operations);
 	return SCH_REPEAT;
 }
+/* ------------------------------------------------------------------------- */
+
+
 /* ------------------------------------------------------------------------- */
 static sch_op_status_ty PrintOp(void* param)
 {

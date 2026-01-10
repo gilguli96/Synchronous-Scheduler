@@ -46,6 +46,7 @@ struct scheduler
 /* -------------------------------------------------------------------------*/
 static int SchIsMatchID(const void* data, void* param);
 static int ComapreTask(const void* data1, const void* data2, void* param);
+static void SchedulerClearQueue(scheduler_ty* sch);
 /* -------------------------------------------------------------------------*/
 scheduler_ty* SchedulerCreate(void)
 {
@@ -77,15 +78,12 @@ void SchedulerDestroy(scheduler_ty* sch)
 
 	assert(NULL != sch);
 
-	while (!PQIsEmpty(sch->pq))
-	{
-		cur_task = PQDequeue(sch->pq);
-		TaskDestroy(cur_task);
-	}
+	SchedulerClearQueue(sch);
 
 	PQDestroy(sch->pq);
 	sch->pq = NULL;
 	free(sch);
+	sch = NULL;
 }
 /* ------------------------------------------------------------------------- */
 uid_ty SchedulerAddTask( scheduler_ty* sch, unsigned int interval,
@@ -163,7 +161,6 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 	assert(NULL != sch);
 
 	sch->is_run = TRUE;
-	/* TODO: add clean and remove from within check with func_to_exe flag */
 	while(sch->is_run && !PQIsEmpty(sch->pq))
 	{
 		switch(sch->func_to_exe)
@@ -208,6 +205,7 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 		if (TSK_NOT_REPEAT == first_op_status)
 		{
 			TaskDestroy(first_task);
+			sch->func_to_exe = (sch->func_to_exe == REMOVE) ? NONE : sch->func_to_exe;
 			continue;
 		}
 		
@@ -235,24 +233,27 @@ void SchedulerClear(scheduler_ty* sch)
 	task_ty* cur_task = NULL;
 	assert(NULL != sch);
 
-	cur_task = sch->cur_task;
-
 	if(NONE == sch->func_to_exe)
 	{
 		sch->func_to_exe = CLEAN;
 		return;
 	}
-
 	sch->func_to_exe = NONE;
+	SchedulerClearQueue(sch);
+}
+/* ------------------------------------------------------------------------- */
+static void SchedulerClearQueue(scheduler_ty* sch)
+{
+	task_ty* cur_task = NULL;
+
+	assert(NULL != sch);
 
 	while (!PQIsEmpty(sch->pq))
 	{
 		cur_task = PQDequeue(sch->pq);
 		TaskDestroy(cur_task);
 	}
-	return;
 }
-
 /* ------------------------------------------------------------------------- */
 static int SchIsMatchID(const void* cur_task, void* id_to_remove)
 {
