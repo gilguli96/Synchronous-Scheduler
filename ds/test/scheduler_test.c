@@ -30,7 +30,6 @@ static void TestSchedulerCreateDestory(void);
 static void TestSchedulerAddRemove(void);
 static void TestSchedulerRunAddStop(void);
 static void TestSchedulerRunClear(void);
-static void TestSchedulerRunStopClear(void);
 
 /* -------------------------------------------------------------------------
 						Helper Functions Declarations
@@ -49,10 +48,10 @@ static void CleanOpParam(void* param);
    ------------------------------------------------------------------------- */
 int main()
 {
-	/*TestSchedulerCreateDestory();*/
+	TestSchedulerCreateDestory();
 	TestSchedulerAddRemove();
-	/*TestSchedulerRunAddStop();
-	TestSchedulerRunClear();*/
+	TestSchedulerRunAddStop();
+	TestSchedulerRunClear();
 	return 0;
 }
 
@@ -77,7 +76,7 @@ static void TestSchedulerCreateDestory(void)
 		printf("SchedulerSize failed! should be 0 first!\n\n");
 	}
 
-	cur_uid = SchedulerAddTask(my_sch, 2, RemoveSelf, my_op_param, CleanOpParam, my_op_param);
+	cur_uid = SchedulerAddTask(my_sch, 2, PrintOp, my_op_param, CleanOpParam, my_op_param);
 	if (IsMatchId(invalid_uid_g, cur_uid))
 	{
 		printf("SchedulerAddTask failed! returned invalid uid!\n\n");
@@ -87,14 +86,14 @@ static void TestSchedulerCreateDestory(void)
 	{
 		printf("SchedulerSize failed! should be 1 after add!\n\n");
 	}
-	
+	printf("TestSchedulerCreateDestory Started!\n\n");
 	SchedulerRun(my_sch);
 	
 	if (0 != SchedulerSize(my_sch))
 	{
 		printf("SchedulerSize failed! should be 1 after run ends!\n\n");
 	}
-
+	
 	SchedulerDestroy(my_sch);
 	my_sch = NULL;
 	printf("Finished TestSchedulerCreateDestory check vlg! \n\n");
@@ -120,6 +119,9 @@ static void TestSchedulerAddRemove(void)
 	}
 
 	/* Case 2 task1 removes itself and retuns not repat! */
+	/* PrintOp Execution 1 */
+	/* Removed self from list here! */
+	/* Only PrintOp From Now on! */
 	{
 		size_t interval_1_amount = 3;
 		size_t interval_1_len = 1;
@@ -173,6 +175,31 @@ static void TestSchedulerAddRemove(void)
 		my_sch = NULL;
 		printf("Test Case 3 Finished!\n\n");
 	}
+		/* Case 4: Removes Outside of run() */
+		/* PrintOp Execution Num 2 -> PrintOp Execution Num 1 */
+	{
+		scheduler_ty* my_sch = SchedulerCreate();
+		size_t intervals_1_amount = 3;
+		size_t intervals_2_amount = 2;
+		size_t interval_1_len = 1;
+		size_t interval_2_len = 2;
+		op_param_ty* my_op_param1 = CreateOpParam(intervals_1_amount, my_sch ,invalid_uid_g);
+		op_param_ty* my_op_param2 = CreateOpParam(intervals_2_amount, my_sch ,invalid_uid_g);
+		my_op_param1->task_id = SchedulerAddTask(my_sch, interval_1_len,
+									 			PrintOp, my_op_param1, 
+												CleanOpParam, my_op_param1);
+
+		my_op_param2->task_id = my_op_param1->task_id;
+		SchedulerAddTask(my_sch, interval_2_len, PrintOp, my_op_param2, 
+						           CleanOpParam, my_op_param2);
+		SchedulerRemoveTask(my_sch, my_op_param1->task_id);
+		
+		printf("Test Case 4 Started!\n\n");
+		SchedulerRun(my_sch);
+		SchedulerDestroy(my_sch);
+		my_sch = NULL;
+		printf("Test Case 4 Finished!\n\n");
+	}
 
 	
 	
@@ -205,37 +232,80 @@ static void TestSchedulerRunAddStop(void)
 /* ------------------------------------------------------------------------- */
 static void TestSchedulerRunClear(void)
 {
-	size_t intervals_1 = 3;
-	size_t intervals_2 = 2;
-	size_t interval_1_len = 2;
-	size_t interval_2_len = 3 ;
-
-	scheduler_ty* my_sch = SchedulerCreate();
-	sch_run_status_ty run_status = SCH_SUCCESS;
-
-	op_param_ty* my_op_param1 = CreateOpParam(intervals_1, my_sch ,invalid_uid_g);
-	op_param_ty* my_op_param2 = CreateOpParam(intervals_2, my_sch ,invalid_uid_g);
-
-	my_op_param1->task_id = SchedulerAddTask(my_sch, interval_1_len,
-								 			PrintOp, my_op_param1, 
-											CleanOpParam, my_op_param1);
-	my_op_param2->task_id = SchedulerAddTask(my_sch, interval_2_len, ClearOp, my_op_param2, 
-					           CleanOpParam, my_op_param2);
-	
-	
-	run_status = SchedulerRun(my_sch);
-	if (SchedulerSize(my_sch) != 0)
+	/* Case 1 - Clear from task op */
+	/* PrintOp num 3 -> ClearOp -> End */
 	{
-		printf("Expected Size = %d Got: Size = %lu\n\n",0, SchedulerSize);
-	}
+		size_t intervals_1 = 3;
+		size_t intervals_2 = 2;
+		size_t interval_1_len = 2;
+		size_t interval_2_len = 3;
+
+		scheduler_ty* my_sch = SchedulerCreate();
+		sch_run_status_ty run_status = SCH_SUCCESS;
+
+		op_param_ty* my_op_param1 = CreateOpParam(intervals_1, my_sch ,invalid_uid_g);
+		op_param_ty* my_op_param2 = CreateOpParam(intervals_2, my_sch ,invalid_uid_g);
+
+		my_op_param1->task_id = SchedulerAddTask(my_sch, interval_1_len,
+									 			PrintOp, my_op_param1, 
+												CleanOpParam, my_op_param1);
+		my_op_param2->task_id = SchedulerAddTask(my_sch, interval_2_len, ClearOp, my_op_param2, 
+							       CleanOpParam, my_op_param2);
+		
+		printf("TestSchedulerRunClear Case 1 Started ! \n\n");
+		printf("Expected: PrintOp num 3 -> ClearOp -> End \n\n");
 	
-	if (SCH_SUCCESS != run_status)
+		run_status = SchedulerRun(my_sch);
+		if (SchedulerSize(my_sch) != 0)
+		{
+			printf("Expected Size = %d Got: Size = %lu\n\n",0, SchedulerSize);
+		}
+		
+		if (SCH_SUCCESS != run_status)
+		{
+			printf("Expected run_status == %d Got: run_status == %d",SCH_SUCCESS, run_status);
+		}
+		printf("TestSchedulerRunClear Case 1 Finished ! \n\n");
+		SchedulerDestroy(my_sch);
+		my_sch = NULL;
+	}
+
+	/* Case 2 - Clear outside of run() */
+	/* Expected no prints! */
 	{
-		printf("Expected run_status == %d Got: run_status == %d",SCH_SUCCESS, run_status);
+		size_t intervals_1 = 3;
+		size_t intervals_2 = 2;
+		size_t interval_1_len = 2;
+		size_t interval_2_len = 3;
+
+		scheduler_ty* my_sch = SchedulerCreate();
+		sch_run_status_ty run_status = SCH_SUCCESS;
+
+		op_param_ty* my_op_param1 = CreateOpParam(intervals_1, my_sch ,invalid_uid_g);
+		op_param_ty* my_op_param2 = CreateOpParam(intervals_2, my_sch ,invalid_uid_g);
+
+		my_op_param1->task_id = SchedulerAddTask(my_sch, interval_1_len,
+									 			PrintOp, my_op_param1, 
+												CleanOpParam, my_op_param1);
+		my_op_param2->task_id = SchedulerAddTask(my_sch, interval_2_len, PrintOp, my_op_param2, 
+							       CleanOpParam, my_op_param2);
+
+		SchedulerClear(my_sch);
+		printf("TestSchedulerRunClear Case 2 Started ! \n\n");
+		run_status = SchedulerRun(my_sch);
+		if (SchedulerSize(my_sch) != 0)
+		{
+			printf("Expected Size = %d Got: Size = %lu\n\n",0, SchedulerSize);
+		}
+		
+		if (SCH_SUCCESS != run_status)
+		{
+			printf("Expected run_status == %d Got: run_status == %d",SCH_SUCCESS, run_status);
+		}
+		printf("TestSchedulerRunClear Case 2 Finished ! \n\n");
+		SchedulerDestroy(my_sch);
+		my_sch = NULL;
 	}
-	
-	SchedulerDestroy(my_sch);
-	my_sch = NULL;
 }
 
 /* -------------------------------------------------------------------------

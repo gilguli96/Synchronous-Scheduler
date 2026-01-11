@@ -38,10 +38,10 @@ typedef enum func_to_exe_ty
 /* -------------------------------------------------------------------------*/
 struct scheduler
 {
+	pq_ty* pq;	
 	sch_bool_ty is_run;
 	func_to_exe_ty func_to_exe;
 	task_ty* cur_task;
-	pq_ty* pq;	
 };
 /* -------------------------------------------------------------------------*/
 static int SchIsMatchID(const void* data, void* param);
@@ -123,7 +123,7 @@ int SchedulerRemoveTask(scheduler_ty* sch, uid_ty task_id)
 	task_ty* task_removed = NULL;
 	assert(NULL != sch);
 
-	if(NONE == sch->func_to_exe && SchIsMatchID(sch->cur_task, &task_id))
+	if(sch->is_run && NONE == sch->func_to_exe && SchIsMatchID(sch->cur_task, &task_id))
 	{
 		sch->func_to_exe = REMOVE;
 		return REMOVED;
@@ -206,12 +206,14 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 		{
 			TaskDestroy(first_task);
 			first_task = NULL;
+			sch->cur_task = NULL;
 			sch->func_to_exe = (sch->func_to_exe == REMOVE) ? NONE : sch->func_to_exe;
 			continue;
 		}
 		
 		TaskUpdateTimeToRun(first_task);
 		PQEnqueue(sch->pq, first_task);
+		
 	}
 	
 	if(!sch->is_run)
@@ -234,7 +236,7 @@ void SchedulerClear(scheduler_ty* sch)
 	task_ty* cur_task = NULL;
 	assert(NULL != sch);
 
-	if(NONE == sch->func_to_exe)
+	if(NONE == sch->func_to_exe && sch->is_run)
 	{
 		sch->func_to_exe = CLEAN;
 		return;
