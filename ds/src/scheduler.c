@@ -76,7 +76,10 @@ void SchedulerDestroy(scheduler_ty* sch)
 {
 	task_ty* cur_task = NULL;
 
-	assert(NULL != sch);
+	if (NULL == sch)
+	{
+		return;
+	}
 
 	SchedulerClearQueue(sch);
 
@@ -155,6 +158,7 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 	task_ty* first_task = NULL;
 	time_t first_time = (time_t)0;
 	time_t curr_time = (time_t)0;
+	pq_status_ty enqueue_status = PQ_FAIL;
 	int pause = 0;
 	task_op_status_ty first_op_status = TSK_NOT_REPEAT;
  
@@ -212,8 +216,11 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 		}
 		
 		TaskUpdateTimeToRun(first_task);
-		PQEnqueue(sch->pq, first_task);
-		
+		enqueue_status = PQEnqueue(sch->pq, first_task);
+		if (PQ_FAIL == enqueue_status)
+		{
+			return SCH_FAIL;
+		}		
 	}
 	
 	if(!sch->is_run)
