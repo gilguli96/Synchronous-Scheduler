@@ -45,7 +45,7 @@ struct scheduler
 };
 /* -------------------------------------------------------------------------*/
 static int SchIsMatchID(const void* data, void* param);
-static int ComapreTask(const void* data1, const void* data2, void* param);
+static int CompareTask(const void* data1, const void* data2, void* param);
 static void SchedulerClearQueue(scheduler_ty* sch);
 /* -------------------------------------------------------------------------*/
 scheduler_ty* SchedulerCreate(void)
@@ -58,11 +58,12 @@ scheduler_ty* SchedulerCreate(void)
 		return NULL;
 	}
 
-	new_pq = PQCreate(ComapreTask, NULL);
+	new_pq = PQCreate(CompareTask, NULL);
 	if (NULL == new_pq)
 	{
 		free(new_sch);
 		new_sch = NULL;
+		return NULL;
 	}
 	new_sch->pq = new_pq;
 	new_sch->is_run = FALSE;
@@ -74,8 +75,6 @@ scheduler_ty* SchedulerCreate(void)
 /* ------------------------------------------------------------------------- */
 void SchedulerDestroy(scheduler_ty* sch)
 {
-	task_ty* cur_task = NULL;
-
 	if (NULL == sch)
 	{
 		return;
@@ -272,7 +271,7 @@ static int SchIsMatchID(const void* cur_task, void* id_to_remove)
 	return IsMatchId(TaskGetUID((task_ty*)cur_task), *(uid_ty*)id_to_remove);	
 }
 /* ------------------------------------------------------------------------- */
-static int ComapreTask(const void* data1, const void* data2, void* param)
+static int CompareTask(const void* data1, const void* data2, void* param)
 {
 	assert(NULL != data1);
 	assert(NULL != data2);
