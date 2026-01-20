@@ -61,7 +61,7 @@ task_ty* TaskCreate( task_op_ty op, void* op_param,
 	return new_task;
 }
 
-op_status_ty TaskExecute(task_ty* tsk)
+task_op_status_ty TaskExecute(task_ty* tsk)
 {
 	assert(NULL != tsk);
 
@@ -84,7 +84,7 @@ void TaskDestroy(task_ty* tsk)
 	tsk = NULL;
 }
 
-uid_ty TaskGetUid(task_ty* tsk)
+uid_ty TaskGetUID(const task_ty *tsk)
 {
 	assert(NULL != tsk);
 
@@ -98,11 +98,11 @@ time_t TaskGetTimeToRun(const task_ty* tsk)
 	return tsk->time_to_run;
 }
 
-bool_ty TaskIsMatch(const task_ty* tsk1, const task_ty* tsk2)
+task_bool_ty TaskIsMatch(const task_ty* tsk1, const task_ty* tsk2)
 {
 	assert(NULL != tsk1);
 	assert(NULL != tsk2);
 
-	return (bool_ty)IsMatchId(tsk1->uid, tsk2->uid);
+	return (task_bool_ty)IsMatchId(tsk1->uid, tsk2->uid);
 }
 

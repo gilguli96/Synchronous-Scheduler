@@ -32,8 +32,7 @@ typedef enum sch_bool
 typedef enum func_to_exe_ty
 {
 	NONE = 0,
-	REMOVE = 1,
-	CLEAN = 2
+	REMOVE = 1
 }func_to_exe_ty;
 /* -------------------------------------------------------------------------*/
 struct scheduler
@@ -125,13 +124,11 @@ int SchedulerRemoveTask(scheduler_ty* sch, uid_ty task_id)
 	task_ty* task_removed = NULL;
 	assert(NULL != sch);
 
-	if(sch->is_run && NONE == sch->func_to_exe && SchIsMatchID(sch->cur_task, &task_id))
+	if(sch->is_run && SchIsMatchID(sch->cur_task, &task_id))
 	{
 		sch->func_to_exe = REMOVE;
 		return REMOVED;
 	}
-
-	sch->func_to_exe = NONE;
 
 	task_removed = (task_ty*)PQRemove(sch->pq, 
 				   					(pq_is_match_ty)SchIsMatchID,
@@ -166,23 +163,8 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 	sch->is_run = TRUE;
 	while(sch->is_run && !PQIsEmpty(sch->pq))
 	{
-		switch(sch->func_to_exe)
-		{
-			case NONE:
-				break;
 
-			case REMOVE:
-				SchedulerRemoveTask(sch, TaskGetUID(sch->cur_task));
-				continue;
-
-			case CLEAN:
-				SchedulerClear(sch);
-				continue;
-		}
-
-		sch->func_to_exe = NONE;
-
-		first_task = (task_ty*)PQPeek(sch->pq);
+		first_task = PQDequeue(sch->pq);
 		sch->cur_task = first_task;
 		first_time = TaskGetTimeToRun(first_task);
 
@@ -201,25 +183,26 @@ sch_run_status_ty SchedulerRun(scheduler_ty* sch)
 		}
 
 		sch->cur_task = first_task;
-		first_op_status = TaskExecute(first_task);
+		first_op_status = TaskExecute(first_task); 
 
-		first_task = PQDequeue(sch->pq);
 
-		if (TSK_NOT_REPEAT == first_op_status)
+		if (TSK_REPEAT == first_op_status && sch->func_to_exe == NONE)
+		{
+			TaskUpdateTimeToRun(first_task);
+			enqueue_status = PQEnqueue(sch->pq, first_task);
+
+			if (PQ_FAIL == enqueue_status)
+			{
+				return SCH_FAIL;
+			}		
+		}
+		else
 		{
 			TaskDestroy(first_task);
 			first_task = NULL;
 			sch->cur_task = NULL;
-			sch->func_to_exe = (sch->func_to_exe == REMOVE) ? NONE : sch->func_to_exe;
-			continue;
+			sch->func_to_exe = NONE;
 		}
-		
-		TaskUpdateTimeToRun(first_task);
-		enqueue_status = PQEnqueue(sch->pq, first_task);
-		if (PQ_FAIL == enqueue_status)
-		{
-			return SCH_FAIL;
-		}		
 	}
 	
 	if(!sch->is_run)
@@ -239,15 +222,12 @@ void SchedulerStop(scheduler_ty* sch)
 /* ------------------------------------------------------------------------- */
 void SchedulerClear(scheduler_ty* sch)
 {
-	task_ty* cur_task = NULL;
 	assert(NULL != sch);
 
-	if(NONE == sch->func_to_exe && sch->is_run)
+	if(sch->is_run)
 	{
-		sch->func_to_exe = CLEAN;
-		return;
+		sch->func_to_exe = REMOVE;
 	}
-	sch->func_to_exe = NONE;
 	SchedulerClearQueue(sch);
 }
 /* ------------------------------------------------------------------------- */
