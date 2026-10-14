@@ -42,9 +42,9 @@ The scheduler relies on a strict composition of abstract data types and supporti
 ## 📁 Project Structure
 
 ```text
-├── include/       /* Public header files (scheduler.h, pqueue.h, sorted_list.h, dlist.h, task.h, uid.h) */
+├── include/       /* Public header files (apis) (scheduler.h, pqueue.h, sorted_list.h, dlist.h, task.h, uid.h) */
 ├── src/           /* Source implementation files */
-├── test/          /* Test suites and verification drivers */
+├── test/          /* Test suites */
 ├── Makefile       /* Build configuration */
 └── README.md
 ```
@@ -69,9 +69,9 @@ make
 ### Running Tests
 
 Execute the test suites to verify functionality across all layers:
-
+Tests are currently complicated prints to terminal and needs a rework.
 ```bash
-make test
+make run
 ```
 
 ---
@@ -102,14 +102,4 @@ int main(void) {
 }
 ```
 
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](../../issues).
-
----
-
-## 📄 License
-
-This project is open-source and available under the terms of the [MIT License](LICENSE).
+--
