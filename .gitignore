@@ -1,0 +1,9 @@
+*
+!*/
+!.gitignore
+!*.md
+!*.c
+!*.h
+!.myfuncs
+!build
+!makefile
