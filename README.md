@@ -92,7 +92,7 @@ int main(void) {
     scheduler_t *sched = SchedCreate();
     
     /* Schedule a task to run after 2 seconds */
-    il_uid_t task_uid = SchedAddTask(sched, sample_task, "Hello, World!", time(NULL) + 2);
+    uid_t task_uid = SchedAddTask(sched, sample_task, "Hello, World!", 2);
 
     /* Run the scheduler loop */
     SchedRun(sched);
